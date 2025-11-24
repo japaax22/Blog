@@ -1,0 +1,49 @@
+---
+title: "Atividade 2 - Monitoramento de Ônibus"
+---
+
+```python
+import requests
+import pandas as pd
+import plotly.express as px
+
+TOKEN = "624b897276bf3d4dd9e9b9c05304c661fff77eb42582a1e476c3b337337c2db2"
+COD_LINHA = "757 - 178"
+
+def autenticar():
+    url = "http://api.olhovivo.sptrans.com.br/v2.1/Login/Autenticar"
+    r = requests.post(url, data={"token": TOKEN})
+    print("Autenticado?", r.json())
+
+def obter_paradas(linha):
+    url = f"http://api.olhovivo.sptrans.com.br/v2.1/Linha/Buscar?termosBusca={linha}"
+    linhas = requests.get(url).json()
+    if not linhas:
+        print("Linha não encontrada!")
+        return None
+    codigo = linhas[0]["CodigoLinha"]
+    url = f"http://api.olhovivo.sptrans.com.br/v2.1/Parada/BuscarParadasPorLinha?codigoLinha={codigo}"
+    return requests.get(url).json()
+
+def obter_posicoes(linha):
+    url = f"http://api.olhovivo.sptrans.com.br/v2.1/Posicao/Linha?codigoLinha={linha}"
+    return requests.get(url).json()
+
+def mapa():
+    autenticar()
+    paradas = obter_paradas(COD_LINHA)
+    pos = obter_posicoes(COD_LINHA)
+    df_p = pd.DataFrame(paradas)
+    df_o = pd.DataFrame(pos["vs"])
+
+    fig = px.scatter_mapbox(df_p, lat="Latitude", lon="Longitude",
+                            color_discrete_sequence=["blue"], hover_data=["Nome"], zoom=12)
+
+    fig.add_scattermapbox(lat=df_o["py"], lon=df_o["px"], mode="markers",
+                          marker=dict(size=12), name="Ônibus")
+
+    fig.update_layout(mapbox_style="open-street-map")
+    fig.show()
+
+mapa()
+```
