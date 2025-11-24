@@ -1,0 +1,10 @@
+---
+title: "Blog das Atividades"
+---
+
+# Bem-vindo!
+
+Este blog contém as três atividades exigidas no trabalho:
+- Cotação do dólar
+- Monitoramento da frota de ônibus
+- Regressão linear

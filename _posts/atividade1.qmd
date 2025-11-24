@@ -1,0 +1,31 @@
+---
+title: "Atividade 1 - Cotação do Dólar"
+---
+
+```python
+# Código da atividade 1
+import requests
+import pandas as pd
+import calendar
+from datetime import datetime
+import plotly.express as px
+
+def dolar_mes(mmyyyy):
+    primeira_data = datetime.strptime(mmyyyy, "%m%Y")
+    ultima_data = primeira_data.replace(day=calendar.monthrange(primeira_data.year, primeira_data.month)[1])
+
+    data_inicial = primeira_data.strftime("%m-%d-%Y")
+    data_final = ultima_data.strftime("%m-%d-%Y")
+
+    url = f"https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"           f"CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?"           f"@dataInicial='{data_inicial}'&@dataFinalCotacao='{data_final}'&$format=json"
+
+    resp = requests.get(url).json()
+    df = pd.DataFrame(resp["value"])
+    df["data"] = pd.to_datetime(df["dataHoraCotacao"]).dt.date
+    df = df.groupby("data").mean(numeric_only=True).reset_index()
+
+    fig = px.line(df, x="data", y="cotacaoVenda", title="Cotação diária do Dólar")
+    fig.show()
+
+dolar_mes("082021")
+```

@@ -1,0 +1,20 @@
+project:
+  type: website
+
+website:
+  title: "Blog das Atividades"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Início
+      - text: Atividades
+        menu:
+          - href: _posts/atividade1.qmd
+            text: Atividade 1
+          - href: _posts/atividade2.qmd
+            text: Atividade 2
+          - href: _posts/atividade3.qmd
+            text: Atividade 3
+format:
+  html:
+    theme: cosmo

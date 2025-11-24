@@ -1,0 +1,66 @@
+title: "Atividade 1 - Cotação do Dólar por Período"
+format: html
+---
+
+# Atividade 1 — Cotação do Dólar
+
+Nesta atividade, o objetivo é criar uma função em Python que receba uma string no formato **MMYYYY**, consulte a API PTAX do Banco Central e gere um **gráfico de linha** utilizando Plotly.
+
+A API fornece a cotação diária do dólar, mas dias sem cotação (como feriados e fins de semana) devem ser preenchidos com o último valor disponível.
+
+---
+
+#  Lógica utilizada
+
+1. A string `"MMYYYY"` é convertida para uma data.  
+2. Identifico o primeiro e último dia do mês usando `calendar.monthrange`.  
+3. Requisição para a API PTAX com os dois parâmetros obrigatórios:
+   - `dataInicial`
+   - `dataFinalCotacao`
+4. Converto o resultado para um DataFrame.  
+5. Preencho as lacunas (dias sem cotação) com **forward fill**.  
+6. Gero o gráfico com Plotly.
+
+---
+
+  Código completo da atividade
+
+```python
+import requests
+import pandas as pd
+import calendar
+from datetime import datetime
+import plotly.express as px
+
+def cotacao_mes(mmYYYY):
+    data = datetime.strptime(mmYYYY, "%m%Y")
+
+    primeiro_dia = data.replace(day=1)
+    ultimo_dia = data.replace(day=calendar.monthrange(data.year, data.month)[1])
+
+    d1 = primeiro_dia.strftime("%m-%d-%Y")
+    d2 = ultimo_dia.strftime("%m-%d-%Y")
+
+    url = (
+        "https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/"
+        f"CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)"
+        f"?@dataInicial='{d1}'&@dataFinalCotacao='{d2}'"
+        "&$format=json"
+    )
+
+    r = requests.get(url).json()
+    df = pd.DataFrame(r["value"])
+
+    df["dataHoraCotacao"] = pd.to_datetime(df["dataHoraCotacao"]).dt.date
+
+    df = df.groupby("dataHoraCotacao")["cotacaoCompra"].mean().reset_index()
+    df = df.set_index("dataHoraCotacao").asfreq("D")
+    df["cotacaoCompra"].fillna(method="ffill", inplace=True)
+
+    fig = px.line(df, y="cotacaoCompra", title=f"Cotação do dólar - {mmYYYY}")
+    fig.show()
+
+    return df
+
+# Exemplo de início:
+cotacao_mes("082021")
