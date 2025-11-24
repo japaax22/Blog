@@ -1,0 +1,28 @@
+---
+title: "Atividade 3 - Regressão Linear"
+---
+
+```python
+import numpy as np
+import pandas as pd
+from plotnine import ggplot, aes, geom_point, geom_abline, ggsave
+
+X = np.loadtxt("X.txt")
+Y = np.loadtxt("Y.txt")
+
+X_mat = np.column_stack((np.ones(len(X)), X))
+coef = np.linalg.inv(X_mat.T @ X_mat) @ (X_mat.T @ Y)
+a, b = coef[0], coef[1]
+
+df = pd.DataFrame({"x": X, "y": Y})
+
+plot = (
+    ggplot(df, aes("x", "y"))
+    + geom_point()
+    + geom_abline(intercept=a, slope=b)
+    + ggsave("grafico_regressao.png")
+)
+
+print("Intercepto:", a)
+print("Inclinação:", b)
+```
